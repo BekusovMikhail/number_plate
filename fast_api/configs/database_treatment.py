@@ -6,9 +6,7 @@ import time
 import os
 import cv2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-
-images_before_treatment = "images_before_treatment"
-images_after_treatment = "images_after_treatment"
+from configs.main_config import *
 
 
 def add_image_sql(image_np, image_name):
@@ -50,7 +48,13 @@ def add_car_sql(boxes, scores, types, image_id):
     for i in range(len(boxes)):
         cursor.execute(
             add_car_box_row_sql.format(
-                boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3], scores[i], types[i], image_id
+                boxes[i][0],
+                boxes[i][1],
+                boxes[i][2],
+                boxes[i][3],
+                scores[i],
+                types[i],
+                image_id,
             )
         )
     cursor.execute(sql_select_car_boxes_where.format("fk_image_id", image_id))
@@ -73,7 +77,14 @@ def add_lp_sql(boxes, scores, types, texts, car_id):
     for i in range(len(boxes)):
         cursor.execute(
             add_lp_box_row_sql.format(
-                boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3], scores[i], texts[i], types[i], car_id
+                boxes[i][0],
+                boxes[i][1],
+                boxes[i][2],
+                boxes[i][3],
+                scores[i],
+                texts[i],
+                types[i],
+                car_id,
             )
         )
     cursor.execute(sql_select_lp_where.format("fk_car_id", car_id))

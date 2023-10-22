@@ -20,7 +20,7 @@ if st.button("Upload image"):
         files = {"file": uploaded_image}
         response = requests.post("http://127.0.0.1:8000/upload_image/", files=files)
 
-        image_after_treatment = Image.open(io.BytesIO(response.content)).convert("RGB")
+        image_after_treatment = Image.open(io.BytesIO(response.content)).convert('RGBA')
         st.header("Image after treatment")
         st.image(image_after_treatment, caption="Image after treatment", use_column_width=True)
 
