@@ -4,6 +4,9 @@ posgres_user_password = "lprpassword"
 
 add_image_row_sql = "INSERT INTO images (image_before_treatment, image_after_treatment) VALUES ('{}', '{}');"
 
+add_car_box_row_sql = "INSERT INTO car (x1, y1, x2, y2, score, type, fk_image_id) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}');"
+
+add_lp_box_row_sql = "INSERT INTO license_plate (x1, y1, x2, y2, score, text, type, fk_car_id) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');"
 
 sqlCreateDatabase = """CREATE DATABASE {}
                             WITH
@@ -13,6 +16,14 @@ sqlCreateDatabase = """CREATE DATABASE {}
                             IS_TEMPLATE = False;"""
 
 sqlDropDatabase = "DROP DATABASE {};"
+
+sql_delete_images_where = "delete from images where {} = '{}';"
+
+sql_select_images_where = "select * from images where {} = '{}';"
+
+sql_select_car_boxes_where = "select * from car where {} = '{}';"
+
+sql_select_lp_where = "select * from license_plate where {} = '{}';"
 
 create_tables_sql = """
                         CREATE TABLE images
@@ -30,8 +41,9 @@ create_tables_sql = """
                             x2 int,
                             y1 int,
                             y2 int,
+                            score float,
                             type varchar,
-                            fk_image_id integer REFERENCES images (image_id)
+                            fk_image_id integer REFERENCES images (image_id) ON DELETE CASCADE
 
                         );
                         ALTER TABLE IF EXISTS car_bbox
@@ -43,10 +55,10 @@ create_tables_sql = """
                             x2 int,
                             y1 int,
                             y2 int,
+                            score float,
                             text varchar,
                             type varchar,
-                            fk_car_id integer REFERENCES car (car_id)
-
+                            fk_car_id integer REFERENCES car (car_id) ON DELETE CASCADE
                         );
                         ALTER TABLE IF EXISTS license_plate
                             OWNER to plate_detection_user
