@@ -1,31 +1,26 @@
-import psycopg2
-
 import sys
 
-sys.path.append("../configs/")
 
-from postgre_config import (
-    posgres_DB,
-    posgres_user,
-    posgres_user_password,
-    sql_alchemy_engine,
-)
-from main_config import images_after_treatment, images_before_treatment
-
-import json
-import time
 import os
 import cv2
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database, drop_database
 
 from typing import List, Optional
-from sqlalchemy import ForeignKey, String, select
-from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
+from sqlalchemy import ForeignKey, select, delete
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.orm import Session
+
+sys.path.append("../configs/")
+
+from postgre_config import (
+    posgres_user,
+    posgres_user_password,
+    sql_alchemy_engine,
+)
+from main_config import images_after_treatment, images_before_treatment
 
 
 class Base(DeclarativeBase):
@@ -64,9 +59,11 @@ class License_plate(Base):
     x2: Mapped[int] = mapped_column()
     y2: Mapped[int] = mapped_column()
     score: Mapped[Optional[float]]
-    text: Mapped[Optional[float]]
+    text: Mapped[Optional[str]]
     type: Mapped[Optional[str]]
-    car_id: Mapped[int] = mapped_column(ForeignKey("car.car_id", ondelete="CASCADE"))
+    car_id: Mapped[int] = mapped_column(
+        ForeignKey("car.car_id", ondelete="CASCADE")
+    )
 
 
 def get_engine():
@@ -83,9 +80,12 @@ def add_image(image_np, image_name):
     bp = os.path.join(os.getcwd(), images_before_treatment, image_name)
     ap = os.path.join(os.getcwd(), images_after_treatment, image_name)
     image = Image(image_before_treatment=bp, image_after_treatment=ap)
+
+    redundant_images = delete(Image).where(Image.image_before_treatment == bp)
+    redundant_images = session.execute(redundant_images)
+    session.commit()
     session.add(image)
-    redundadt_images = select(Image).where(Image.image_before_treatment == bp)
-    print(redundadt_images)
+    session.commit()
     cv2.imwrite(bp, image_np)
     return image.image_id
 
@@ -109,46 +109,42 @@ def add_car(boxes, scores, types, image_id):
             image_id=image_id,
         )
         session.add(car)
+        session.commit()
         car_ids.append(car.car_id)
     return car_ids
 
 
-def add_lp(boxes, scores, types, texts, car_id):
+def add_lp(boxes, score, types, texts, car_id):
     session = get_session()
-    assert len(boxes) == len(scores)
-    assert len(boxes) == len(types)
 
     lp_ids = []
-
+    print(car_id)
     for i in range(len(boxes)):
         lp = License_plate(
             x1=boxes[i][0],
             y1=boxes[i][1],
             x2=boxes[i][2],
             y2=boxes[i][3],
-            score=scores[i],
+            score=score[i],
             type=types[i],
             text=texts[i],
             car_id=car_id,
         )
         session.add(lp)
+        session.commit()
         lp_ids.append(lp.lp_id)
     return lp_ids
 
 
 def create_db():
-    engine = create_engine(
-        f"postgresql+psycopg2://{posgres_user}:{posgres_user_password}@127.0.0.1/{posgres_DB}"
-    )
+    engine = engine = get_engine()
     if not database_exists(engine.url):
         create_database(engine.url)
         Base.metadata.create_all(engine)
 
 
 def drop_db():
-    engine = create_engine(
-        f"postgresql+psycopg2://{posgres_user}:{posgres_user_password}@127.0.0.1/{posgres_DB}"
-    )
+    engine = get_engine()
     if database_exists(engine.url):
         drop_database(engine.url)
 

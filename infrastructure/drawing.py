@@ -17,7 +17,12 @@ def draw_rectangle(img, bbox, t="LP", thickness=1):
 
 
 def draw_text(
-    img, text, org, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 0)
+    img,
+    text,
+    org,
+    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+    fontScale=0.35,
+    color=(0, 255, 0),
 ):
     cv2.putText(
         img,

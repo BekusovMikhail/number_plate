@@ -19,14 +19,22 @@ class TritonInference:
             interpolation="area" if scale_factor < 1 else "bilinear",
         )
         new_shape = image.shape[:2]
-        padding_h, padding_w = [dim[0] - image.shape[0], dim[1] - image.shape[1]]
+        padding_h, padding_w = [
+            dim[0] - image.shape[0],
+            dim[1] - image.shape[1],
+        ]
         top_padding, left_padding = int(round(padding_h // 2 - 0.1)), int(
             round(padding_w // 2 - 0.1)
         )
         bottom_padding = padding_h - top_padding
         right_padding = padding_w - left_padding
 
-        padding_list = [top_padding, bottom_padding, left_padding, right_padding]
+        padding_list = [
+            top_padding,
+            bottom_padding,
+            left_padding,
+            right_padding,
+        ]
         image = mmcv.impad(
             img=image,
             padding=(
