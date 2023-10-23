@@ -1,11 +1,23 @@
 from typing import Union
+import sys
 
+sys.path.append("../infrastructure/")
+sys.path.append("../configs/")
+
+from database_treatment import (
+    add_image,
+    add_car,
+    add_lp,
+)
+from drawing import draw_rectangle, draw_text
+from main_config import (
+    images_before_treatment,
+    images_after_treatment,
+    car_detector_exist,
+)
 import os
-from configs.postgre_config import *
-from configs.database_treatment import *
-from configs.main_config import *
 
-import requests
+# from inference_model import TritonInference
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import FileResponse
 
@@ -16,7 +28,7 @@ import cv2
 
 import numpy as np
 
-from starlette.responses import StreamingResponse, Response
+from starlette.responses import Response
 
 app = FastAPI()
 
@@ -26,39 +38,34 @@ async def read_root():
     return {"Greetings": "Welcome to our LPR"}
 
 
-@app.get("/items/{item_id}")
-async def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
-
 @app.get("/send_image/{image_name}", response_class=FileResponse)
 async def display_image(image_name: str):
-    print()
     return os.path.join(os.getcwd(), images_after_treatment, image_name)
 
 
 @app.post("/upload_image/", response_class=FileResponse)
 async def upload_image(file: UploadFile = File(...)):
     # try:
-    requests_session = requests.session()
-    print(file.filename)
+    # triton = TritonInference()
     image = Image.open(io.BytesIO(await file.read())).convert("RGB")
     image_np = np.array(image)
+    # lp_detection_results = triton.inf_plate_detector(image_np)
+    # print(lp_detection_results)
     result_img = image_np.copy()
-    image_id = add_image_sql(image_np, file.filename)[0][0]
+    image_id = add_image(image_np, file.filename)
     print(image_id)
-    # if car_detector_exist:
-    #     car_boxes = [[]...]
-    #     car_ids = add_car_sql(car_boxes, car_scores, car_types, image_id)
-    # else:
-    #     car_boxes = [[0,0, image_np.shape[1], image_np[0]]]...
-    #     car_types = ["-"]
-    #     car_scores = [1, 0.8, 0.7]
-    car_boxes = [[100, 100, 200, 200], [200, 200, 400, 400], [253, 812, 364, 950]]
-    car_scores = [0.9, 0.8, 0.7]
-    car_types = ["car", "bus", "truck"]
+    if car_detector_exist:
+        #     car_boxes = [[]...]
+        #     car_ids = add_car_sql(car_boxes, car_scores, car_types, image_id)
+        car_boxes = [[100, 100, 200, 200], [200, 200, 400, 400], [253, 812, 364, 950]]
+        car_scores = [0.9, 0.8, 0.7]
+        car_types = ["car", "bus", "truck"]
+    else:
+        car_boxes = [[0, 0, image_np.shape[1], image_np[0]]]
+        car_types = ["-"]
+        car_scores = [1]
 
-    car_ids = add_car_sql(car_boxes, car_scores, car_types, image_id)
+    car_ids = add_car(car_boxes, car_scores, car_types, image_id)
     print(car_ids)
 
     lp_boxes = [[[120, 120, 140, 140]], [[220, 220, 300, 300]], [[278, 820, 300, 893]]]
@@ -66,27 +73,12 @@ async def upload_image(file: UploadFile = File(...)):
     lp_types = [["region2"], ["region3"], ["unknown"]]
     lp_text = [["B125MP52"], ["O212OO77"], ["Y863TA34"]]
     for i in range(len(car_ids)):
-        lp_ids = add_lp_sql(
-            lp_boxes[i], lp_scores[i], lp_types[i], lp_text[i], car_ids[i][0]
-        )
+        lp_ids = add_lp(lp_boxes[i], lp_scores[i], lp_types[i], lp_text[i], car_ids[i])
         if car_detector_exist:
-            result_img = cv2.rectangle(
-                result_img,
-                pt1=(car_boxes[i][0], car_boxes[i][1]),
-                pt2=(car_boxes[i][2], car_boxes[i][3]),
-                color=(255, 0, 0),
-                thickness=1,
-            )
-            cv2.putText(
-                result_img,
-                text=car_types[i],
-                org=(car_boxes[i][0], car_boxes[i][1]),
-                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=1,
-                color=(255, 0, 0),
-                thickness=1,
-            )
+            result_img = draw_rectangle(result_img, car_boxes[i], t="Car")
+            result_img = draw_text(result_img, text=car_types[i], org=car_boxes[i][0], car_boxes[i][1])
         for j in range(len(lp_boxes[i])):
+            result_img = draw_rectangle(result_img, )
             result_img = cv2.rectangle(
                 result_img,
                 pt1=(lp_boxes[i][j][0], lp_boxes[i][j][1]),
@@ -112,7 +104,7 @@ async def upload_image(file: UploadFile = File(...)):
             color=(255, 255, 0),
             thickness=1,
         )
-        lp_ids = add_lp_sql(
+        lp_ids = add_lp(
             lp_boxes[i], lp_scores[i], lp_types[i], lp_text[i], car_ids[i][0]
         )
         print(lp_ids)
