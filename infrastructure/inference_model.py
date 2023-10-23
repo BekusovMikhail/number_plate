@@ -68,12 +68,51 @@ class TritonInference:
         labels = detection_response.as_numpy("labels")[0]
         return boxes, scores, labels
 
+    def __postprocessing(
+        self, boxes, scores, labels, shapes_info, score_thr=0.4
+    ):
+        filtered_boxes = []
+        filtered_scores = []
+        filtered_labels = []
+        for i in range(len(boxes)):
+            if scores[i] > score_thr:
+                tb = [
+                    shapes_info["shape"][1]
+                    * (boxes[i][0] - shapes_info["padding_list"][2])
+                    / shapes_info["new_shape"][1],
+                    shapes_info["shape"][0]
+                    * (boxes[i][1] - shapes_info["padding_list"][0])
+                    / shapes_info["new_shape"][0],
+                    shapes_info["shape"][1]
+                    * (boxes[i][2] - shapes_info["padding_list"][2])
+                    / shapes_info["new_shape"][1],
+                    shapes_info["shape"][0]
+                    * (boxes[i][3] - shapes_info["padding_list"][0])
+                    / shapes_info["new_shape"][0],
+                ]
+                tb[0] = 0 if tb[0] < 0 else tb[0]
+                tb[1] = 0 if tb[1] < 0 else tb[1]
+                tb[2] = 0 if tb[2] < 0 else tb[2]
+                tb[3] = 0 if tb[3] < 0 else tb[3]
+                # tb = [tb[0], tb[1], tb[2]-tb[0], tb[3]-tb[1]]
+                filtered_boxes.append(tb)
+                filtered_scores.append(scores[i])
+                filtered_labels.append(labels[i])
+
+        return filtered_boxes, filtered_scores, filtered_labels
+
     def inf_plate_detector(self, frame: np.array):
         img_preprocessed, shapes_info = self.__img_detector_preprocess(
             cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         )
         boxes, scores, labels = self.__get_detection_res(img_preprocessed)
+        boxes, scores, labels = self.__postprocessing(
+            boxes, scores, labels, shapes_info
+        )
         return {"bboxes": boxes, "scores": scores, "labels": labels}
+
+    def inf_car_detector(self, frame: np.array):
+        pass
 
     def inf_plate_ocr(self, frame: np.array):
         pass  # TODO

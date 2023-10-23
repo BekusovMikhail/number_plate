@@ -39,10 +39,10 @@ class Car(Base):
     __tablename__ = "car"
 
     car_id: Mapped[int] = mapped_column(primary_key=True)
-    x1: Mapped[int] = mapped_column()
-    y1: Mapped[int] = mapped_column()
-    x2: Mapped[int] = mapped_column()
-    y2: Mapped[int] = mapped_column()
+    x1: Mapped[float] = mapped_column()
+    y1: Mapped[float] = mapped_column()
+    x2: Mapped[float] = mapped_column()
+    y2: Mapped[float] = mapped_column()
     score: Mapped[Optional[float]]
     type: Mapped[Optional[str]]
     image_id: Mapped[int] = mapped_column(
@@ -54,10 +54,10 @@ class License_plate(Base):
     __tablename__ = "license_plate"
 
     lp_id: Mapped[int] = mapped_column(primary_key=True)
-    x1: Mapped[int] = mapped_column()
-    y1: Mapped[int] = mapped_column()
-    x2: Mapped[int] = mapped_column()
-    y2: Mapped[int] = mapped_column()
+    x1: Mapped[float] = mapped_column()
+    y1: Mapped[float] = mapped_column()
+    x2: Mapped[float] = mapped_column()
+    y2: Mapped[float] = mapped_column()
     score: Mapped[Optional[float]]
     text: Mapped[Optional[str]]
     type: Mapped[Optional[str]]
@@ -90,7 +90,7 @@ def add_image(image_np, image_name):
     return image.image_id
 
 
-def add_car(boxes, scores, types, image_id):
+def add_car(boxes, image_id, scores=[None], types=[None]):
     session = get_session()
 
     assert len(boxes) == len(scores)
@@ -99,15 +99,26 @@ def add_car(boxes, scores, types, image_id):
     car_ids = []
 
     for i in range(len(boxes)):
-        car = Car(
-            x1=boxes[i][0],
-            y1=boxes[i][1],
-            x2=boxes[i][2],
-            y2=boxes[i][3],
-            score=scores[i],
-            type=types[i],
-            image_id=image_id,
-        )
+        try:
+            car = Car(
+                x1=boxes[i][0].item(),
+                y1=boxes[i][1].item(),
+                x2=boxes[i][2].item(),
+                y2=boxes[i][3].item(),
+                score=scores[i].item(),
+                type=types[i],
+                image_id=image_id,
+            )
+        except:
+            car = Car(
+                x1=boxes[i][0].item(),
+                y1=boxes[i][1].item(),
+                x2=boxes[i][2].item(),
+                y2=boxes[i][3].item(),
+                score=scores[i],
+                type=types[i],
+                image_id=image_id,
+            )
         session.add(car)
         session.commit()
         car_ids.append(car.car_id)
@@ -118,14 +129,13 @@ def add_lp(boxes, score, types, texts, car_id):
     session = get_session()
 
     lp_ids = []
-    print(car_id)
     for i in range(len(boxes)):
         lp = License_plate(
-            x1=boxes[i][0],
-            y1=boxes[i][1],
-            x2=boxes[i][2],
-            y2=boxes[i][3],
-            score=score[i],
+            x1=boxes[i][0].item(),
+            y1=boxes[i][1].item(),
+            x2=boxes[i][2].item(),
+            y2=boxes[i][3].item(),
+            score=score[i].item(),
             type=types[i],
             text=texts[i],
             car_id=car_id,
@@ -134,6 +144,46 @@ def add_lp(boxes, score, types, texts, car_id):
         session.commit()
         lp_ids.append(lp.lp_id)
     return lp_ids
+
+
+def get_lp_and_cars_by_image(image_id):
+    session = get_session()
+    stmt = select(Car).where(Car.image_id == image_id)
+    cars = session.execute(stmt).fetchall()[0]
+    lp_bboxes = []
+    lp_types = []
+    lp_texts = []
+    cars_bboxes = [
+        [
+            x.x1,
+            x.y1,
+            x.x2,
+            x.y2,
+        ]
+        for x in cars
+    ]
+    cars_types = [x.type for x in cars]
+    for car_id in [x.car_id for x in cars]:
+        stmt = select(License_plate).where(License_plate.car_id == car_id)
+        lps = session.execute(stmt).fetchall()[0]
+        lp_bboxes.extend(
+            [
+                x.x1,
+                x.y1,
+                x.x2,
+                x.y2,
+            ]
+            for x in lps
+        )
+        lp_types.extend([x.type for x in lps])
+        lp_texts.extend([x.text for x in lps])
+    return (
+        cars_bboxes,
+        cars_types,
+        lp_bboxes,
+        lp_types,
+        lp_texts,
+    )
 
 
 def create_db():

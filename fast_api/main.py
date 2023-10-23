@@ -19,12 +19,20 @@ from starlette.responses import Response
 sys.path.append("../infrastructure/")
 sys.path.append("../configs/")
 
-from database_treatment import add_image, add_car, add_lp, drop_db, create_db
-from drawing import draw_rectangle, draw_text
+from database_treatment import (
+    add_image,
+    add_car,
+    add_lp,
+    drop_db,
+    create_db,
+    get_lp_and_cars_by_image,
+)
+from drawing import draw_all_on_image
 from main_config import (
     images_after_treatment,
     car_detector_exist,
 )
+from inference_model import TritonInference
 
 app = FastAPI()
 
@@ -42,73 +50,38 @@ async def display_image(image_name: str):
 @app.post("/upload_image/", response_class=FileResponse)
 async def upload_image(file: UploadFile = File(...)):
     # try:
-    # triton = TritonInference()
+    triton = TritonInference()
     image = Image.open(io.BytesIO(await file.read())).convert("RGB")
     image_np = np.array(image)
-    # lp_detection_results = triton.inf_plate_detector(image_np)
-    # print(lp_detection_results)
+
     result_img = image_np.copy()
     image_id = add_image(image_np, file.filename)
-    print(image_id)
     if car_detector_exist:
-        #     car_boxes = [[]...]
-        #     car_ids = add_car_sql(car_boxes, car_scores, car_types, image_id)
-        car_boxes = [
-            [100, 100, 200, 200],
-            [200, 200, 400, 400],
-            [253, 812, 364, 950],
-        ]
-        car_scores = [0.9, 0.8, 0.7]
-        car_types = ["car", "bus", "truck"]
+        pass
+        # car_detection_results = triton.inf_car_detector(image_np) WIP
     else:
-        car_boxes = [[0, 0, image_np.shape[1], image_np.shape[0]]]
-        car_types = ["-"]
-        car_scores = [1]
+        lp_detection_results = triton.inf_plate_detector(image_np)
+        print(lp_detection_results)
+        car_boxes = np.array([[0, 0, image_np.shape[1], image_np.shape[0]]])
+        # car_types = ["-"]
+        # car_scores = np.array([1])
+        lp_boxes = np.expand_dims(lp_detection_results["bboxes"], axis=0)
+        lp_scores = np.expand_dims(lp_detection_results["scores"], axis=0)
 
-    car_ids = add_car(car_boxes, car_scores, car_types, image_id)
-    print(car_ids)
-
-    lp_boxes = [
-        [[120, 120, 140, 140]],
-        [[220, 220, 300, 300]],
-        [[278, 820, 300, 893]],
-    ]
-    lp_scores = [[0.6], [0.5], [0.4]]
+    car_ids = add_car(car_boxes, image_id)
     lp_types = [["region2"], ["region3"], ["unknown"]]
     lp_text = [["B125MP52"], ["O212OO77"], ["Y863TA34"]]
     for i in range(len(car_ids)):
         lp_ids = add_lp(
             lp_boxes[i], lp_scores[i], lp_types[i], lp_text[i], car_ids[i]
         )
-        if car_detector_exist:
-            result_img = draw_rectangle(result_img, car_boxes[i], t="Car")
-            result_img = draw_text(
-                result_img,
-                text=car_types[i],
-                org=[car_boxes[i][0], car_boxes[i][1]],
-            )
-        for j in range(len(lp_boxes[i])):
-            result_img = draw_rectangle(result_img, lp_boxes[i][j], t="LP")
-            result_img = draw_text(
-                result_img,
-                text=lp_text[i][j],
-                org=[lp_boxes[i][j][0], lp_boxes[i][j][1]],
-            )
-            result_img = draw_text(
-                result_img,
-                text=lp_types[i][j],
-                org=[lp_boxes[i][j][0], lp_boxes[i][j][1] + 30],
-            )
-        print(lp_ids)
-
+    result_img = draw_all_on_image(
+        result_img, get_lp_and_cars_by_image(image_id)
+    )
     cv2.imwrite(
         os.path.join(os.getcwd(), images_after_treatment, file.filename),
         cv2.cvtColor(result_img, cv2.COLOR_RGB2BGR),
     )
-    # image_tensor = ToTensor()(image).unsqueeze(0).to("cuda")
-    # car_boxes = triton(image)
-    # lp_boxes = triton(car_boxes, image)
-    # texts = triton(lp_boxes, image)
 
     returned_image = Image.fromarray(result_img)
     bytes_io = io.BytesIO()
