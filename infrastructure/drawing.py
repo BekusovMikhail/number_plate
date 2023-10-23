@@ -1,4 +1,11 @@
 import cv2
+import sys
+
+sys.path.append("../configs/")
+
+from main_config import (
+    car_detector_exist,
+)
 
 
 def draw_rectangle(img, bbox, t="LP", thickness=1):
@@ -6,10 +13,10 @@ def draw_rectangle(img, bbox, t="LP", thickness=1):
         color = (255, 0, 0)
     else:
         color = (0, 255, 0)
-    cv2.rectangle(
+    img = cv2.rectangle(
         img,
-        pt1=(bbox[0], bbox[1]),
-        pt2=(bbox[2], bbox[3]),
+        pt1=(round(bbox[0]), round(bbox[1])),
+        pt2=(round(bbox[2]), round(bbox[3])),
         color=color,
         thickness=thickness,
     )
@@ -23,14 +30,52 @@ def draw_text(
     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
     fontScale=0.35,
     color=(0, 255, 0),
+    thickness=1,
 ):
-    cv2.putText(
+    img = cv2.putText(
         img,
         text=text,
-        org=(org[0], org[1]),
+        org=(round(org[0]), round(org[1])),
         fontFace=fontFace,
         fontScale=fontScale,
         color=color,
-        thickness=1,
+        thickness=thickness,
     )
+    return img
+
+
+def draw_all_on_image(img, inp):
+    (
+        cars_bboxes,
+        cars_types,
+        lp_bboxes,
+        lp_types,
+        lp_texts,
+    ) = (
+        inp[0],
+        inp[1],
+        inp[2],
+        inp[3],
+        inp[4],
+    )
+    if car_detector_exist:
+        for i in range(len(cars_bboxes)):
+            img = draw_rectangle(img, cars_bboxes[i], t="Car")
+            img = draw_text(
+                img,
+                text=cars_types[i],
+                org=[cars_bboxes[i][0], cars_bboxes[i][1]],
+            )
+    for i in range(len(lp_bboxes)):
+        img = draw_rectangle(img, lp_bboxes[i], t="LP")
+        img = draw_text(
+            img,
+            text=lp_texts[i],
+            org=[lp_bboxes[i][0], lp_bboxes[i][1]],
+        )
+        img = draw_text(
+            img,
+            text=lp_types[i],
+            org=[lp_bboxes[i][0], lp_bboxes[i][1] + 30],
+        )
     return img
