@@ -9,7 +9,7 @@
 
 ## Технологии
 - [?] - Распознование номера на машине
-- [efficientnet-b3]([https://www.typescriptlang.org/](https://pytorch.org/vision/main/models/generated/torchvision.models.efficientnet_b3.html)) - Распознование текста номера
+- [Efficientnet-b3]([https://www.typescriptlang.org/](https://pytorch.org/vision/main/models/generated/torchvision.models.efficientnet_b3.html)) - Распознование текста номера
 - [FastAPI](https://fastapi.tiangolo.com/) - Backend
 - [Streamlit](https://streamlit.io/) - Frontend
 
