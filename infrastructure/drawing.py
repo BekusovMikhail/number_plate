@@ -3,10 +3,6 @@ import sys
 
 sys.path.append("../configs/")
 
-from main_config import (
-    car_detector_exist,
-)
-
 
 def draw_rectangle(img, bbox, t="LP", thickness=1):
     if t == "Car":
@@ -46,8 +42,6 @@ def draw_text(
 
 def draw_all_on_image(img, inp):
     (
-        cars_bboxes,
-        cars_types,
         lp_bboxes,
         lp_types,
         lp_texts,
@@ -55,23 +49,13 @@ def draw_all_on_image(img, inp):
         inp[0],
         inp[1],
         inp[2],
-        inp[3],
-        inp[4],
     )
-    if car_detector_exist:
-        for i in range(len(cars_bboxes)):
-            img = draw_rectangle(img, cars_bboxes[i], t="Car")
-            img = draw_text(
-                img,
-                text=cars_types[i],
-                org=[cars_bboxes[i][0], cars_bboxes[i][1]],
-            )
     for i in range(len(lp_bboxes)):
         img = draw_rectangle(img, lp_bboxes[i], t="LP")
         img = draw_text(
             img,
             text=lp_texts[i],
-            org=[lp_bboxes[i][0], lp_bboxes[i][1]],
+            org=[lp_bboxes[i][0], lp_bboxes[i][1] - 2],
         )
         img = draw_text(
             img,
