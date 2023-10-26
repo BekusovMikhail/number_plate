@@ -99,26 +99,26 @@ def add_car(boxes, image_id, scores=[None], types=[None]):
     car_ids = []
 
     for i in range(len(boxes)):
-        try:
-            car = Car(
-                x1=boxes[i][0].item(),
-                y1=boxes[i][1].item(),
-                x2=boxes[i][2].item(),
-                y2=boxes[i][3].item(),
-                score=scores[i].item(),
-                type=types[i],
-                image_id=image_id,
-            )
-        except:
-            car = Car(
-                x1=boxes[i][0].item(),
-                y1=boxes[i][1].item(),
-                x2=boxes[i][2].item(),
-                y2=boxes[i][3].item(),
-                score=scores[i],
-                type=types[i],
-                image_id=image_id,
-            )
+        # try:
+        # car = Car(
+        #     x1=boxes[i][0].item(),
+        #     y1=boxes[i][1].item(),
+        #     x2=boxes[i][2].item(),
+        #     y2=boxes[i][3].item(),
+        #     score=scores[i].item(),
+        #     type=types[i],
+        #     image_id=image_id,
+        #     )
+        # except:
+        car = Car(
+            x1=boxes[i][0].item(),
+            y1=boxes[i][1].item(),
+            x2=boxes[i][2].item(),
+            y2=boxes[i][3].item(),
+            score=scores[i],
+            type=types[i],
+            image_id=image_id,
+        )
         session.add(car)
         session.commit()
         car_ids.append(car.car_id)
@@ -153,16 +153,6 @@ def get_lp_and_cars_by_image(image_id):
     lp_bboxes = []
     lp_types = []
     lp_texts = []
-    cars_bboxes = [
-        [
-            x.x1,
-            x.y1,
-            x.x2,
-            x.y2,
-        ]
-        for x in cars
-    ]
-    cars_types = [x.type for x in cars]
     for car_id in [x.car_id for x in cars]:
         stmt = select(License_plate).where(License_plate.car_id == car_id)
         lps = session.execute(stmt).fetchall()[0]
@@ -178,8 +168,6 @@ def get_lp_and_cars_by_image(image_id):
         lp_types.extend([x.type for x in lps])
         lp_texts.extend([x.text for x in lps])
     return (
-        cars_bboxes,
-        cars_types,
         lp_bboxes,
         lp_types,
         lp_texts,
