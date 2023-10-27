@@ -1,0 +1,56 @@
+version: '3.4'
+
+services:
+  lpr_fast_api:
+    # image: python:3.10-slim
+    build:
+      context: .
+      dockerfile: ./fast_api/Dockerfile
+    ports:
+      - 8600:8600
+    network_mode: "host"
+    command: "uvicorn fast_api.main:app --port 8600"
+  postgres:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: "plate_detection_db"
+      POSTGRES_USER: "plate_detection_user"
+      POSTGRES_PASSWORD: "lprpassword"
+    ports:
+      - "5432:5432"
+    network_mode: "host"
+  # sudo docker run --gpus all -p 8400:8000 -p 8401:8001 -p 8402:8002 -v /home/mike/python_files/plate_detection/triton_model_repo:/models nvcr.io/nvidia/tritonserver:23.08-py3 tritonserver --model-repository=/models
+  inference_server:
+    image: nvcr.io/nvidia/tritonserver:23.08-py3
+    # runtime: nvidia
+
+    volumes:
+      - ./triton_model_repo/:/models
+    ports:
+      - 8400:8000
+      - 8401:8001
+      - 8402:8002
+    command: [ "tritonserver", "--model-repository=/models" ]
+    shm_size: 4g
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: [ '0' ]
+              capabilities: [ gpu ]
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    network_mode: "host"
+  lpr_streamlit:
+    # image: python:3.10
+    build:
+      context: .
+      dockerfile: ./streamlit/Dockerfile
+    volumes:
+      - ./streamlit/:/streamlit/
+    command: "streamlit run --server.port 8501 streamlit/main.py"
+    ports:
+      - "8501:8501"
+    network_mode: "host"
