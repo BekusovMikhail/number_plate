@@ -10,13 +10,11 @@ sys.path.append("../infrastructure/")
 from inference_model import TritonInference
 
 sys.path.append("../infrastructure/")
-from database_treatment import (
-    add_image,
-    add_car,
-)
+from database_treatment import add_image, add_car, create_db
 
 
 async def get_image_after_treatment(file):
+    create_db()
     triton = TritonInference()
     image = Image.open(io.BytesIO(await file.read())).convert("RGB")
     image_np = np.array(image)

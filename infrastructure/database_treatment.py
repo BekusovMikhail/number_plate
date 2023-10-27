@@ -175,7 +175,7 @@ def get_lp_and_cars_by_image(image_id):
 
 
 def create_db():
-    engine = engine = get_engine()
+    engine = get_engine()
     if not database_exists(engine.url):
         create_database(engine.url)
         Base.metadata.create_all(engine)
