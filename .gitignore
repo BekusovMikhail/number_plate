@@ -3,3 +3,5 @@
 *.png
 *.jpg
 *.png
+triton_model_tepo/*
+triton_model_tepo

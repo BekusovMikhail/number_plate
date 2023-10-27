@@ -36,30 +36,9 @@ async def display_image(image_name: str):
 
 @app.post("/upload_image/", response_class=FileResponse)
 async def upload_image(file: UploadFile = File(...)):
-    print()
     return Response(
         await get_image_after_treatment(file), media_type="image/png"
     )
-
-
-@app.get("/create_db")
-async def create_database():
-    try:
-        create_db()
-        return {"Status": "Created"}
-    except:
-        return {
-            "Status": "Not created or exist, maybe you didn't create user , go to /get_user_credentials/"
-        }
-
-
-@app.get("/drop_db")
-async def drop_database():
-    try:
-        drop_db()
-        return {"Status": "Dropped"}
-    except:
-        return {"Status": "Not dropped"}
 
 
 @app.get("/get_user_credentials")
