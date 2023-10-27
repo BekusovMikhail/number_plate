@@ -1,2 +1,0 @@
-name: "lp_recognition"
-backend: "onnxruntime"
