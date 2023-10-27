@@ -14,14 +14,17 @@
 - [Streamlit](https://streamlit.io/) - Frontend
 
 ## Использование
-Чтобы запустить наш сервис необходимо использовать команду:
+Чтобы запустить наш сервис необходимо использовать команды:
 ```sh
-  🦧
+git clone https://github.com/BekusovMikhail/number_plate.git
+cd number_plate
+docker compose build
+docker compose up
+http://127.0.0.1:8501/
 ```
 
-```typescript
-import 🦍
-```
+Скачать папку triton_model_repo https://drive.google.com/drive/folders/1etL6BM7iIQgXSx4qYWuxnKZDSDmAFVNB?usp=drive_link  
+Перенести папку в .../number_plate  
 
 ## Ограничения
 
