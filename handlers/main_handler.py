@@ -10,11 +10,17 @@ sys.path.append("../infrastructure/")
 from inference_model import TritonInference
 
 sys.path.append("../infrastructure/")
-from database_treatment import add_image, add_car, create_db
+from database_treatment import (
+    add_image,
+    add_car,
+    create_db,
+    create_tables_in_db,
+)
 
 
 async def get_image_after_treatment(file):
     create_db()
+    create_tables_in_db()
     triton = TritonInference()
     image = Image.open(io.BytesIO(await file.read())).convert("RGB")
     image_np = np.array(image)
@@ -24,8 +30,12 @@ async def get_image_after_treatment(file):
     car_ids = add_car(car_boxes, image_id)
 
     lp_boxes, lp_scores = lp_detection_treatment(image_np, triton)
-    lp_ocr_treatment(image_np, triton, lp_boxes, lp_scores, car_ids)
-    result_img = draw_on_image_and_save(result_img, image_id, file.filename)
+    try:
+        [_[0] for _ in lp_boxes]
+        lp_ocr_treatment(image_np, triton, lp_boxes, lp_scores, car_ids)
+        result_img = draw_on_image_and_save(result_img, image_id, file.filename)
+    except:
+        pass
 
     returned_image = Image.fromarray(result_img)
     bytes_io = io.BytesIO()

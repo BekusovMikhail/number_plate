@@ -179,6 +179,7 @@ class LP_OCR:
         return np.array(batch)
 
     def _get_res(self, img_preprocessed):
+        img_preprocessed = np.float32(img_preprocessed)
         recognition_input = httpclient.InferInput(
             "input", img_preprocessed.shape, datatype="FP32"
         )

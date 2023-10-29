@@ -178,7 +178,11 @@ def create_db():
     engine = get_engine()
     if not database_exists(engine.url):
         create_database(engine.url)
-        Base.metadata.create_all(engine)
+
+
+def create_tables_in_db():
+    engine = get_engine()
+    Base.metadata.create_all(engine)
 
 
 def drop_db():

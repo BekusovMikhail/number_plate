@@ -19,7 +19,6 @@ services:
     ports:
       - "5432:5432"
     network_mode: "host"
-  # sudo docker run --gpus all -p 8400:8000 -p 8401:8001 -p 8402:8002 -v /home/mike/python_files/plate_detection/triton_model_repo:/models nvcr.io/nvidia/tritonserver:23.08-py3 tritonserver --model-repository=/models
   inference_server:
     image: nvcr.io/nvidia/tritonserver:23.08-py3
     # runtime: nvidia
