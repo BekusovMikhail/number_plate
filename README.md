@@ -33,7 +33,7 @@ http://127.0.0.1:8501/
 4. Сервис работает с изображениями номерных знаков, предполагая установленные параметры (номер не слишком близко, определенное разрешение и пропорции)
 
 <p align="center">
-    <img width="200" src="http://material-bread.org/logo-shadow.svg](https://user-images.githubusercontent.com/78909279/279159171-2a8922e4-e513-4797-aa8d-0a3fb4f3eb73.jpg" alt="Пример фотографии для модели">
+    <img width="200" src="https://user-images.githubusercontent.com/78909279/279159171-2a8922e4-e513-4797-aa8d-0a3fb4f3eb73.jpg" alt="Пример фотографии для модели">
 </p>
 
 Пример фотографии для модели
