@@ -26,7 +26,7 @@ http://127.0.0.1:8501/
 Скачать папку [triton_model_repo](https://drive.google.com/drive/folders/1etL6BM7iIQgXSx4qYWuxnKZDSDmAFVNB?usp=drive_link) и перенести ее в **.../number_plate**
 
 ## Ограничения
-
+[Пример фото машины](https://user-images.githubusercontent.com/78909279/279159171-2a8922e4-e513-4797-aa8d-0a3fb4f3eb73.jpg)
 ## Масштабирование
 
 1. Непрерывное совершенствование моделей с целью повышения их качества и эффективности.
