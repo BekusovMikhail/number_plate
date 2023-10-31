@@ -39,11 +39,3 @@ async def upload_image(file: UploadFile = File(...)):
     return Response(
         await get_image_after_treatment(file), media_type="image/png"
     )
-
-
-@app.get("/get_user_credentials")
-async def get_credentials_database():
-    try:
-        return get_db_user_credentials()
-    except:
-        pass
