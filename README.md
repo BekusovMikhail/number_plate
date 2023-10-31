@@ -8,7 +8,7 @@
 - [Масштабирование](#Масштабирование)
 
 ## Технологии
-- [?] - Распознование номера на машине
+- [Yolov8-n](https://docs.ultralytics.com/) - Распознование номера на машине
 - [Efficientnet-b3](https://pytorch.org/vision/main/models/generated/torchvision.models.efficientnet_b3) - Распознование текста номера
 - [FastAPI](https://fastapi.tiangolo.com/) - Backend
 - [Streamlit](https://streamlit.io/) - Frontend
