@@ -1,15 +1,7 @@
-import sys
 import numpy as np
 
-sys.path.append("../infrastructure/")
-sys.path.append("../configs/")
-
-from database_treatment import (
-    add_lp,
-)
-from main_config import (
-    translit,
-)
+from fast_api.configs.main_config import translit
+from fast_api.db import add_lp
 
 
 def lp_ocr_treatment(image, triton, lp_boxes, lp_scores, car_ids):
@@ -32,8 +24,6 @@ def lp_ocr_treatment(image, triton, lp_boxes, lp_scores, car_ids):
             lp_text.append([english_text.upper()])
             lp_types.append(["unknown"])  # type=unknown
     for i in range(len(car_ids)):
-        lp_ids = add_lp(
-            lp_boxes[i], lp_scores[i], lp_types[i], lp_text[i], car_ids[i]
-        )
+        lp_ids = add_lp(lp_boxes[i], lp_scores[i], lp_types[i], lp_text[i], car_ids[i])
 
     return lp_ids

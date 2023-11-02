@@ -22,13 +22,12 @@ RUN pip3 install torchaudio==2.1.0
 RUN pip3 install torchvision==0.16.0
 RUN pip3 install psycopg2==2.9.3
 RUN pip3 install psycopg2-binary==2.9.9
-# RUN pip install fastapi uvicorn
+RUN pip3 install fastapi uvicorn
 
-WORKDIR /app
-COPY . /app
-COPY ../handlers /app
-COPY ../infrastructure /app
-COPY ../configs /app
+WORKDIR /fast_api
+COPY fast_api .
+# это позволяет приложению обращаться к директории fast_api
+ENV PYTHONPATH=/
 
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
 CMD ["uvicorn", "fast_api.main:app", "--port", "8600"]

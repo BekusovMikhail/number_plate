@@ -1,26 +1,14 @@
-import sys
-
-
 import os
+from typing import Optional
+
 import cv2
+from sqlalchemy import ForeignKey, create_engine, delete, select
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
+from sqlalchemy_utils import create_database, database_exists, drop_database
 
-
-from sqlalchemy import create_engine
-from sqlalchemy_utils import database_exists, create_database, drop_database
-
-from typing import List, Optional
-from sqlalchemy import ForeignKey, select, delete
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy.orm import Session
-
-sys.path.append("../configs/")
-
-from postgre_config import (
-    posgres_user,
-    posgres_user_password,
-    sql_alchemy_engine,
-)
-from main_config import images_after_treatment, images_before_treatment
+from configs.main_config import images_after_treatment, images_before_treatment
+from configs.postgre_config import (posgres_user, posgres_user_password,
+                                    sql_alchemy_engine)
 
 
 class Base(DeclarativeBase):
@@ -61,9 +49,7 @@ class License_plate(Base):
     score: Mapped[Optional[float]]
     text: Mapped[Optional[str]]
     type: Mapped[Optional[str]]
-    car_id: Mapped[int] = mapped_column(
-        ForeignKey("car.car_id", ondelete="CASCADE")
-    )
+    car_id: Mapped[int] = mapped_column(ForeignKey("car.car_id", ondelete="CASCADE"))
 
 
 def get_engine():
