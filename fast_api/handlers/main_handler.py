@@ -1,27 +1,22 @@
-import sys
-from lp_detection_handler import lp_detection_treatment
-from ocr_handler import lp_ocr_treatment
-from draw_handler import draw_on_image_and_save
-from PIL import Image
-import numpy as np
 import io
 
-sys.path.append("../infrastructure/")
-from inference_model import TritonInference
+import numpy as np
+from PIL import Image
 
-sys.path.append("../infrastructure/")
-from database_treatment import (
-    add_image,
-    add_car,
-    create_db,
-    create_tables_in_db,
-)
+from fast_api.db import add_car, add_image
+from fast_api.infrastructure.inference_model import TritonInference
+
+from .draw_handler import draw_on_image_and_save
+from .lp_detection_handler import lp_detection_treatment
+from .ocr_handler import lp_ocr_treatment
+
+triton = TritonInference()
 
 
 async def get_image_after_treatment(file):
-    create_db()
-    create_tables_in_db()
-    triton = TritonInference()
+    # create_db()
+    # create_tables_in_db()
+    # triton = TritonInference()
     image = Image.open(io.BytesIO(await file.read())).convert("RGB")
     image_np = np.array(image)
     image_id = add_image(image_np, file.filename)

@@ -1,18 +1,10 @@
-import sys
 import os
+
 import cv2
 
-sys.path.append("../infrastructure/")
-sys.path.append("../configs/")
-
-from database_treatment import (
-    get_lp_and_cars_by_image,
-)
-from main_config import images_after_treatment
-
-from drawing import (
-    draw_all_on_image,
-)
+from fast_api.configs.main_config import images_after_treatment
+from fast_api.db import get_lp_and_cars_by_image
+from fast_api.infrastructure.drawing import draw_all_on_image
 
 
 def draw_on_image_and_save(image_np, image_id, filename):

@@ -1,8 +1,8 @@
 import cv2
-import numpy as np
-import tritonclient.http as httpclient
 import mmcv
+import numpy as np
 import torch
+import tritonclient.http as httpclient
 
 
 class LP_detector:
@@ -67,9 +67,7 @@ class LP_detector:
         labels = detection_response.as_numpy("labels")[0]
         return boxes, scores, labels
 
-    def _postprocessing(
-        self, boxes, scores, labels, shapes_info, score_thr=0.4
-    ):
+    def _postprocessing(self, boxes, scores, labels, shapes_info, score_thr=0.4):
         filtered_boxes = []
         filtered_scores = []
         filtered_labels = []
@@ -105,9 +103,7 @@ class LP_detector:
             cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         )
         boxes, scores, labels = self._get_res(img_preprocessed)
-        boxes, scores, labels = self._postprocessing(
-            boxes, scores, labels, shapes_info
-        )
+        boxes, scores, labels = self._postprocessing(boxes, scores, labels, shapes_info)
         return {"bboxes": boxes, "scores": scores, "labels": labels}
 
 
@@ -135,9 +131,7 @@ class LP_OCR:
             )
         else:
             delta = self.recognition_width - new_w
-            image = cv2.resize(
-                image, (new_w, self.recognition_height), cv2.INTER_CUBIC
-            )
+            image = cv2.resize(image, (new_w, self.recognition_height), cv2.INTER_CUBIC)
             pad_left = 0
             pad_right = delta
 
@@ -183,9 +177,7 @@ class LP_OCR:
         recognition_input = httpclient.InferInput(
             "input", img_preprocessed.shape, datatype="FP32"
         )
-        recognition_input.set_data_from_numpy(
-            img_preprocessed, binary_data=True
-        )
+        recognition_input.set_data_from_numpy(img_preprocessed, binary_data=True)
         recognition_response = self.client.infer(
             model_name="lp_recognition",
             inputs=[recognition_input],
